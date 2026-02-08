@@ -1,0 +1,255 @@
+@import "tailwindcss";
+
+/* v4 doesn't strictly need a tailwind.config.js for basic use, 
+   but it loves these theme variables at the top */
+@theme {
+    /* YOUR MASTER LIST - Change these for App #2 */
+    --color-brand-charcoal: #2F2F2D;
+    --color-brand-clay: #9A4B31;
+    --color-brand-sage: #6B645E;
+    --color-brand-beige: #EBE5DC;
+    --color-brand-beige-dusty: #CDC4B9;
+    --color-brand-earth: #6B645E;
+    --color-brand-earth-light: #D6D1CA;
+
+    --font-heading: "Poppins", sans-serif;
+    --font-body: "Inter", sans-serif;
+}
+
+
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--color-brand-beige);
+    color: var(--text-body);
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Range Input Styling linked to design system */
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    background: var(--color-brand-clay);
+    cursor: pointer;
+    border-radius: 50%;
+    border: 3px solid var(--color-brand-beige);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    margin-top: -8px;
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    background: var(--color-brand-clay);
+    cursor: pointer;
+    border-radius: 50%;
+    border: 3px solid var(--color-brand-beige);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    width: 100%;
+    cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+    background: rgba(107, 100, 94, 0.2);
+    height: 8px;
+    border-radius: 4px;
+}
+
+input[type="range"]::-moz-range-track {
+    background: rgba(107, 100, 94, 0.2);
+    height: 8px;
+    border-radius: 4px;
+}
+
+input[type="range"]:focus {
+    outline: none;
+}
+
+
+/* ===== Ixia UI base (MakerPrice) ===== */
+
+.ixia-card {
+    border-radius: 1.5rem;
+    border: 1px solid color-mix(in oklab, var(--color-brand-earth) 12%, transparent);
+    background: rgba(255, 255, 255, 0.75);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.ixia-card--padded {
+    padding: 2rem;
+    /* roughly p-8 */
+}
+
+.ixia-card-title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    color: var(--color-brand-charcoal);
+}
+
+.ixia-help {
+    color: color-mix(in oklab, var(--color-brand-earth) 75%, transparent);
+    line-height: 1.5;
+}
+
+.ixia-divider {
+    height: 1px;
+    background: color-mix(in oklab, var(--color-brand-beige-dusty) 80%, transparent);
+}
+
+/* Buttons */
+.ixia-button {
+    border-radius: 1rem;
+    padding: 0.9rem 1rem;
+    font-weight: 800;
+}
+
+.ixia-button--full {
+    width: 100%;
+}
+
+.ixia-button--primary {
+    background: var(--color-brand-charcoal);
+    color: var(--color-brand-beige);
+}
+
+.ixia-button--secondary {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid color-mix(in oklab, var(--color-brand-earth) 18%, transparent);
+    color: var(--color-brand-charcoal);
+}
+
+.ixia-button--text {
+    background: transparent;
+    color: var(--color-brand-earth);
+    padding: 0.6rem 0.75rem;
+}
+
+/* Inputs */
+.ixia-input {
+    width: 100%;
+    border-radius: 1rem;
+    padding: 0.85rem 0.9rem;
+    border: 1px solid color-mix(in oklab, var(--color-brand-earth) 18%, transparent);
+    background: rgba(255, 255, 255, 0.9);
+}
+
+/* ===== Upgrade Modal ===== */
+.ixia-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+}
+
+.ixia-modal__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    border: 0;
+    padding: 0;
+}
+
+.ixia-modal__panel {
+    position: relative;
+    width: min(720px, calc(100vw - 2rem));
+    margin: 10vh auto 0;
+    padding: 1.25rem 1.25rem 1rem;
+    border-radius: 1.25rem;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid var(--color-brand-beige-dusty);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
+}
+
+.ixia-modal__list {
+    margin-top: 0.75rem;
+    padding-left: 1.1rem;
+    color: var(--color-brand-earth);
+    line-height: 1.55;
+}
+
+.ixia-modal__list li {
+    margin-top: 0.4rem;
+}
+
+/* ===== AI Advice (renderer classes used in AdvicePanel.tsx) ===== */
+
+.ixia-advice {
+    /* easy controls */
+    --ixia-advice-heading-color: var(--color-brand-forest);
+    --ixia-advice-heading-size: 1.05rem;
+
+    @apply rounded-2xl border border-brand-beige-dusty bg-white/70 p-6;
+}
+
+.ixia-advice__body {
+    @apply space-y-6;
+}
+
+.ixia-advice__section {
+    @apply space-y-2;
+}
+
+.ixia-advice__title {
+    color: var(--ixia-advice-heading-color);
+    font-size: var(--ixia-advice-heading-size);
+    @apply font-heading font-semibold tracking-tight leading-tight;
+}
+
+.ixia-advice__p {
+    @apply text-sm font-semibold text-brand-earth leading-relaxed;
+}
+
+.ixia-advice__label {
+    @apply font-bold text-brand-charcoal;
+}
+
+.ixia-advice__list {
+    @apply pl-5 space-y-2;
+}
+
+.ixia-advice__list--bullets {
+    @apply list-disc;
+}
+
+.ixia-advice__list--numbers {
+    @apply list-decimal;
+}
+
+.ixia-advice__li {
+    @apply text-sm font-semibold text-brand-earth leading-relaxed;
+}
+
+
+/* Print Overrides */
+@media print {
+    body {
+        background-color: white !important;
+    }
+
+    .bg-brand-earth-light {
+        background-color: #f3f4f6 !important;
+    }
+
+    button,
+    select,
+    input[type="range"] {
+        display: none !important;
+    }
+
+    .shadow-2xl,
+    .shadow-xl {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+}
