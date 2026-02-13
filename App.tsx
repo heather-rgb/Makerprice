@@ -5,10 +5,6 @@ import { InputCard } from './components/InputCard.tsx';
 import { ResultsCard } from './components/ResultsCard.tsx';
 import AdvicePanel from "./components/AdvicePanel.tsx";
 
-
-
-
-
 const WHOLESALE_APP_BASE_URL = 'https://wholesaleprice.ixiacreativestudio.com/';
 
 const App: React.FC = () => {
@@ -67,7 +63,6 @@ const App: React.FC = () => {
     // 5) Ideal Hourly Rate
     params.set("idealHourlyRate", String(state.hourlyRate));
 
-
     const qs = params.toString();
     return qs ? `${WHOLESALE_APP_BASE_URL}?${qs}` : WHOLESALE_APP_BASE_URL;
   }, [state.productName, state.timeTaken, state.materials, state.overheads, state.extras, breakdown.suggestedPrice]);
@@ -98,8 +93,7 @@ const App: React.FC = () => {
               {/* Link to Wholesale Price Checker with prefills */}
               <a
                 href={wholesalePrefillUrl}
-                className="block w-full text-center rounded-2xl bg-brand-forest text-white font-black py-4 px-6
-                           hover:opacity-95 transition border border-brand-forest/20 shadow-sm"
+                className="block w-full text-center rounded-2xl ixia-btn-cta font-black py-4 px-6 transition border shadow-sm"
               >
                 Check wholesale viability
               </a>
@@ -112,7 +106,7 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      <footer className="mt-20 text-center text-brand-earth/60 text-sm pb-10">
+      <footer className="mt-20 text-center ixia-footer-text text-sm pb-10">
         <p>&copy; {new Date().getFullYear()} Ixia Creative Studio. Built for artisans and creators.</p>
       </footer>
     </div>

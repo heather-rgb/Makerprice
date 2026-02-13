@@ -71,10 +71,10 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
   const rateOptions = Array.from({ length: 46 }, (_, i) => i + 5);
 
   return (
-    <div className="bg-white rounded-3xl shadow-xl shadow-brand-charcoal/5 overflow-hidden border border-brand-earth/10 font-body">
-      <div className="bg-brand-earth px-6 py-5 flex items-center justify-between font-heading">
-        <h2 className="text-brand-beige font-bold text-lg flex items-center whitespace-nowrap">
-          <i className="fa-solid fa-sliders mr-2 text-brand-clay"></i>
+    <div className="ixia-surface-card ixia-font-body rounded-3xl overflow-hidden border border-brand-earth/10">
+      <div className="ixia-bar-header ixia-font-heading px-6 py-5 flex items-center justify-between">
+        <h2 className="ixia-text-on-dark font-bold text-lg flex items-center whitespace-nowrap">
+          <i className="fa-solid fa-sliders mr-2 ixia-accent"></i>
           Price Adjuster
         </h2>
       </div>
@@ -127,19 +127,18 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <div className="space-y-8 bg-brand-beige-dusty p-6 rounded-2xl border border-brand-earth/10">
+          <div className="space-y-8 ixia-panel p-6 rounded-2xl border">
+
             <h3 className="text-xs font-black uppercase text-brand-heading tracking-widest flex items-center font-heading">
               <i className="fa-solid fa-user-clock mr-2 text-brand-clay/60"></i> Your Time & Effort
             </h3>
 
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <label className="text-sm font-bold text-brand-body/70">Hourly Rate
-                </label>
-                <span className="text-sm font-black text-brand-beige bg-brand-clay px-3 py-1 rounded-lg shadow-sm">
+                <label className="text-sm font-bold text-brand-body/70">Hourly Rate</label>
+                <span className="ixia-chip text-sm font-black px-3 py-1 rounded-lg">
                   {symbol}{state.hourlyRate}/hr
                 </span>
-
               </div>
               <input
                 type="range"
@@ -155,7 +154,7 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-bold text-brand-body/70">Time Taken</label>
-                <span className="text-sm font-black text-brand-beige bg-brand-clay px-3 py-1 rounded-lg shadow-sm">
+                <span className="ixia-chip text-sm font-black px-3 py-1 rounded-lg">
                   {formatDuration(state.timeTaken)}
                 </span>
               </div>
@@ -179,7 +178,7 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-bold text-brand-body/70">Materials</label>
-                <div className="flex items-center text-sm font-black text-brand-beige bg-brand-clay px-3 py-1 rounded-lg shadow-sm">
+                <div className="ixia-chip flex items-center text-sm font-black px-3 py-1 rounded-lg">
                   <span className="mr-0.5">{symbol}</span>
                   <input
                     type="number"
@@ -205,7 +204,7 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-bold text-brand-body/70">Overheads</label>
-                <span className="text-sm font-black text-brand-beige bg-brand-clay px-3 py-1 rounded-lg shadow-sm">
+                <span className="ixia-chip text-sm font-black px-3 py-1 rounded-lg">
                   {formatValue(state.overheads)}
                 </span>
               </div>
@@ -244,10 +243,10 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
         </div>
 
         <div className="space-y-10 border-t border-brand-earth/10 pt-8">
-          <div className="bg-brand-beige-dusty p-6 rounded-2xl border border-brand-earth/10">
+          <div className="ixia-panel p-6 rounded-2xl border">
             <div className="flex justify-between items-center mb-4">
               <label className="text-sm font-bold text-brand-body/70">Extras & Packaging</label>
-              <span className="text-sm font-black text-brand-beige bg-brand-clay px-3 py-1 rounded-lg shadow-sm">
+              <span className="ixia-chip text-sm font-black px-3 py-1 rounded-lg">
                 {formatValue(state.extras)}
               </span>
             </div>
@@ -262,7 +261,7 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
             />
           </div>
 
-          <div className="bg-brand-beige-dusty p-8 rounded-3xl text-brand-body border border-brand-earth/30">
+          <div className="ixia-panel--strong p-8 rounded-3xl text-brand-body border">
             <div className="flex justify-between items-center mb-6">
               <label className="text-sm font-black uppercase tracking-widest text-brand-muted font-heading">Business Growth & Safety</label>
               <span className="text-3xl font-black text-brand-clay">
@@ -345,13 +344,13 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
             </p>
           </div>
 
-          <div className="bg-brand-beige-dusty p-6 border border-brand-earth/20 rounded-2xl mt-4">
+          <div className="ixia-panel--strong p-6 border rounded-2xl mt-4">
             <p className="text-xs font-black uppercase text-brand-heading mb-2 font-heading">A message from Heather:</p>
             <p className="text-xs italic font-medium text-brand-body/80 leading-relaxed">
               "Don't be afraid to charge what you are worth. Your unique skill and time have immense value. Use this tool as your confidence booster when talking to customers!"
             </p>
           </div>
-          <div className="bg-white p-5 rounded-2xl border border-brand-earth/20">
+          <div className="ixia-panel--soft p-5 rounded-2xl border">
             <p className="text-xs font-black uppercase text-brand-heading mb-2 font-heading">
               Not sure this is the right tool?
             </p>
@@ -361,7 +360,7 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
 
             <a
               href="https://serviceprice.ixiacreativestudio.com/"
-              className="inline-flex mt-3 bg-brand-forest text-white font-black px-4 py-2 rounded-xl hover:opacity-90 transition"
+              className="inline-flex mt-3 ixia-btn-cta font-black px-4 py-2 rounded-xl transition border"
             >
               Open Service Pricing Guide
             </a>

@@ -11,6 +11,7 @@
     --color-brand-beige-dusty: #CDC4B9;
     --color-brand-earth: #6B645E;
     --color-brand-earth-light: #D6D1CA;
+    --color-brand-forest: #000000;
 
     --font-heading: "Poppins", sans-serif;
     --font-body: "Inter", sans-serif;
@@ -25,6 +26,17 @@ body {
     margin: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== App-level theme vars (safe: colors only) ===== */
+:root {
+    /* CTA button (Wholesale link) */
+    --ixia-cta-bg: var(--color-brand-forest);
+    --ixia-cta-text: #ffffff;
+    --ixia-cta-border: color-mix(in oklab, var(--ixia-cta-bg) 25%, transparent);
+
+    /* Footer */
+    --ixia-footer-text: color-mix(in oklab, var(--color-brand-earth) 60%, transparent);
 }
 
 /* Custom Range Input Styling linked to design system */
@@ -75,6 +87,12 @@ input[type="range"]:focus {
     outline: none;
 }
 
+/* Value chips (slider readouts) */
+.ixia-chip {
+    background: var(--color-brand-clay);
+    color: var(--color-brand-beige);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
 
 /* ===== Ixia UI base (MakerPrice) ===== */
 
@@ -106,6 +124,181 @@ input[type="range"]:focus {
 .ixia-divider {
     height: 1px;
     background: color-mix(in oklab, var(--color-brand-beige-dusty) 80%, transparent);
+}
+
+/* ===== Header Theme ===== */
+
+.ixia-header {
+    background: var(--color-brand-earth-light);
+    color: var(--color-brand-charcoal);
+}
+
+.ixia-header-muted {
+    color: color-mix(in oklab, var(--color-brand-earth) 70%, transparent);
+}
+
+.ixia-header-tagline {
+    color: var(--color-brand-earth);
+}
+
+.ixia-currency-pill {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid color-mix(in oklab, var(--color-brand-earth) 8%, transparent);
+}
+
+.ixia-select-accent {
+    color: var(--color-brand-clay);
+}
+
+.ixia-select-option {
+    background: var(--color-brand-beige);
+    color: var(--color-brand-charcoal);
+}
+
+/* ===== Theme-only helpers (safe: colors/fonts/shadows only) ===== */
+
+.ixia-font-body {
+    font-family: var(--font-body);
+}
+
+.ixia-font-heading {
+    font-family: var(--font-heading);
+}
+
+.ixia-surface-card {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 24px 40px rgba(47, 47, 45, 0.05);
+    /* matches shadow-brand-charcoal/5 vibe */
+}
+
+.ixia-bar-header {
+    background: var(--color-brand-earth);
+}
+
+.ixia-text-on-dark {
+    color: var(--color-brand-beige);
+}
+
+.ixia-accent {
+    color: var(--color-brand-clay);
+}
+
+/* ===== App theme helpers (theme-only) ===== */
+
+.ixia-btn-cta {
+    background: var(--ixia-cta-bg);
+    color: var(--ixia-cta-text);
+    border-color: var(--ixia-cta-border);
+}
+
+.ixia-btn-cta:hover {
+    opacity: 0.95;
+}
+
+.ixia-footer-text {
+    color: var(--ixia-footer-text);
+}
+
+/* ResultsCard theme helpers */
+.ixia-surface-elevated {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 28px 60px rgba(0, 0, 0, 0.10);
+    /* shadow-2xl vibe */
+}
+
+/* =========================
+   Panels (theme-only)
+   ========================= */
+
+/* Central panel controls (edit these) */
+:root {
+    /* Default panel (replaces bg-brand-beige-dusty) */
+    --ixia-panel-bg: var(--color-brand-beige-dusty);
+
+    /* Panel border colour (replaces border-brand-earth/10 etc.) */
+    --ixia-panel-border: color-mix(in oklab, var(--color-brand-earth) 12%, transparent);
+
+    /* Softer panel wash (replaces bg-brand-beige-dusty/30 or /50) */
+    --ixia-panel-bg-soft: color-mix(in oklab, var(--ixia-panel-bg) 55%, transparent);
+
+    /* Stronger border for emphasis blocks (replaces border-brand-earth/20 etc.) */
+    --ixia-panel-border-strong: color-mix(in oklab, var(--color-brand-earth) 20%, transparent);
+}
+
+/* Apply only colours (no padding/radius/layout) */
+.ixia-panel {
+    background: var(--ixia-panel-bg);
+    border-color: var(--ixia-panel-border);
+}
+
+.ixia-panel--soft {
+    background: var(--ixia-panel-bg-soft);
+    border-color: var(--ixia-panel-border);
+}
+
+.ixia-panel--strong {
+    background: var(--ixia-panel-bg);
+    border-color: var(--ixia-panel-border-strong);
+}
+
+.ixia-panel-muted {
+    background: color-mix(in oklab, var(--color-brand-beige-dusty) 30%, transparent);
+}
+
+.ixia-text-body {
+    color: color-mix(in oklab, var(--color-brand-charcoal) 78%, transparent);
+}
+
+/* ===== Theme text tokens (safe) ===== */
+
+.ixia-text-heading {
+    color: var(--color-brand-charcoal);
+}
+
+.ixia-text-muted {
+    color: color-mix(in oklab, var(--color-brand-earth) 70%, transparent);
+}
+
+.ixia-text-faint {
+    color: color-mix(in oklab, var(--color-brand-earth) 35%, transparent);
+}
+
+.ixia-accent {
+    color: var(--color-brand-clay);
+}
+
+.ixia-text-heading {
+    color: var(--color-brand-charcoal);
+}
+
+.ixia-text-muted {
+    color: color-mix(in oklab, var(--color-brand-earth) 70%, transparent);
+}
+
+.ixia-text-faint {
+    color: color-mix(in oklab, var(--color-brand-earth) 35%, transparent);
+}
+
+.ixia-accent {
+    color: var(--color-brand-clay);
+}
+
+.ixia-surface-muted {
+    background: var(--color-brand-beige-dusty);
+}
+
+.ixia-btn-primary {
+    background: var(--color-brand-clay);
+    color: var(--color-brand-beige);
+}
+
+.ixia-btn-primary:hover {
+    opacity: 0.9;
+}
+
+/* Optional: “muted card” used in ResultsCard total box */
+.ixia-surface-muted {
+    background: var(--color-brand-beige-dusty);
 }
 
 /* Buttons */
