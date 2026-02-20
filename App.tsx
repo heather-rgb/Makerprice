@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { PricingState, PricingBreakdown, CurrencyType } from './types.ts';
+import { PricingState, PricingBreakdown, CurrencyType, CURRENCY_CONFIG } from './types.ts';
 import { Header } from './components/Header.tsx';
 import { InputCard } from './components/InputCard.tsx';
 import { ResultsCard } from './components/ResultsCard.tsx';
@@ -9,6 +9,7 @@ const WHOLESALE_APP_BASE_URL = 'https://wholesaleprice.ixiacreativestudio.com/';
 
 const App: React.FC = () => {
   const [currency, setCurrency] = useState<CurrencyType>('DOLLAR');
+  const currencyConfig = CURRENCY_CONFIG[currency];
   const [state, setState] = useState<PricingState>({
     productName: '',
     hourlyRate: 25,
@@ -88,8 +89,11 @@ const App: React.FC = () => {
                 breakdown={breakdown}
                 currency={currency}
               />
-              <AdvicePanel state={state} results={breakdown} />
-
+              <AdvicePanel
+                state={state}
+                results={breakdown}
+                currencySymbol={currencyConfig.symbol}
+              />
               {/* Link to Wholesale Price Checker with prefills */}
               <a
                 href={wholesalePrefillUrl}

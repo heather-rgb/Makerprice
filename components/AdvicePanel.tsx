@@ -24,6 +24,9 @@ type AdviceSection = {
   blocks: AdviceBlock[];
 };
 
+
+
+
 function parseAdviceToSections(input: string): AdviceSection[] {
   const text = String(input || "").replace(/\r\n/g, "\n").trim();
   if (!text) return [];
@@ -45,8 +48,10 @@ function parseAdviceToSections(input: string): AdviceSection[] {
     if (current.blocks.length > 0 || current.title !== "Advice") sections.push(current);
   };
 
+
   let ul: string[] = [];
   let ol: string[] = [];
+
 
   const flushLists = () => {
     if (ul.length) {
@@ -128,6 +133,7 @@ function parseAdviceToSections(input: string): AdviceSection[] {
 type Props = {
   results: any;
   state: any;
+  currencySymbol: string;
 };
 
 type AdviceResponse =
@@ -151,6 +157,9 @@ const APP_ID = "makerprice";
 const UPGRADE_URL = "https://ixiacreativestudio.com/checkout/?add-to-cart=1779";
 const LS_EMAIL_KEY = "ixia_emailForSignIn";
 const SS_OOB_KEY_PREFIX = "ixia_emailOob_used_";
+// Comparison snapshot storage (MakerPrice)
+const LS_PREV_SNAPSHOT_KEY = "ixia_makerprice_prev_snapshot_v1";
+
 
 function getOobCodeFromUrl(href: string): string | null {
   try {
@@ -160,10 +169,98 @@ function getOobCodeFromUrl(href: string): string | null {
     return null;
   }
 }
+// ---------------- COMPARISON HELPERS ----------------
+
+// IMPORTANT: Do not guess fields. We'll store the full state/results,
+// and compute rateDelta from the one confirmed results field.
+type PrevSnapshot = {
+  state: any;
+  results: any;
+  savedAtMs: number;
+};
+
+function safeReadPrevSnapshot(): PrevSnapshot | null {
+  try {
+    const raw = window.localStorage.getItem(LS_PREV_SNAPSHOT_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as PrevSnapshot;
+  } catch {
+    return null;
+  }
+}
+
+function safeWritePrevSnapshot(snapshot: PrevSnapshot) {
+  try {
+    window.localStorage.setItem(LS_PREV_SNAPSHOT_KEY, JSON.stringify(snapshot));
+  } catch {
+    // ignore
+  }
+}
+
+function safeClearPrevSnapshot() {
+  try {
+    window.localStorage.removeItem(LS_PREV_SNAPSHOT_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Replace "effectiveHourlyRate" below ONLY if your MakerPrice results uses a different key.
+ * Do not guess—confirm via your types/results calculation.
+ */
+function getEffectiveHourlyRate(results: any): number | null {
+  const n = Number(results?.effectiveHourlyRate);
+  return Number.isFinite(n) ? n : null;
+}
+
+function buildRateDelta(previous: PrevSnapshot, currentResults: any): number | null {
+  const prevRate = getEffectiveHourlyRate(previous?.results);
+  const curRate = getEffectiveHourlyRate(currentResults);
+  if (prevRate == null || curRate == null) return null;
+  const d = curRate - prevRate;
+  // ignore microscopic float noise
+  return Math.abs(d) >= 0.01 ? d : 0;
+}
+function diffState(prev: any, cur: any) {
+  const changes: Array<{ key: string; from: any; to: any }> = [];
+
+  const prevObj = prev && typeof prev === "object" ? prev : {};
+  const curObj = cur && typeof cur === "object" ? cur : {};
+
+  const keys = new Set([...Object.keys(prevObj), ...Object.keys(curObj)]);
+
+  for (const key of keys) {
+    const a = (prevObj as any)[key];
+    const b = (curObj as any)[key];
+
+    // Skip functions/undefined
+    if (typeof a === "function" || typeof b === "function") continue;
+    if (typeof a === "undefined" && typeof b === "undefined") continue;
+
+    // Simple compare (works well for numbers/strings/booleans)
+    const same =
+      (Number.isFinite(a) && Number.isFinite(b) && Number(a) === Number(b)) ||
+      a === b;
+
+    if (!same) changes.push({ key, from: a, to: b });
+  }
+
+  return changes;
+}
+
+function buildChangeSummaryLine(changes: Array<{ key: string; from: any; to: any }>) {
+  if (!changes.length) return null;
+
+  // Keep it short: show up to 3 changes
+  const top = changes.slice(0, 3).map((c) => `${c.key}: ${c.from} → ${c.to}`);
+  return `Changes since last run: ${top.join(", ")}.`;
+}
 
 
 
-export default function AdvicePanel({ results, state }: Props) {
+export default function AdvicePanel({ results, state, currencySymbol }: Props) {
+
   const [loading, setLoading] = useState(false);
 
   const [mode, setMode] = useState<
@@ -202,6 +299,9 @@ export default function AdvicePanel({ results, state }: Props) {
 
   // Upgrade modal (shown when free uses are exhausted and user is not entitled)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  // Comparison snapshot (previous run)
+  const [prevSnapshot, setPrevSnapshot] = useState<PrevSnapshot | null>(null);
+
 
 
   const isEmailCapable = !!user?.email;
@@ -212,10 +312,18 @@ export default function AdvicePanel({ results, state }: Props) {
       app: APP_ID,
       state,
       results,
+      currency: currencySymbol,
       context: "MakerPrice AI advice",
     }),
-    [results, state]
+    [results, state, currencySymbol]
   );
+
+
+  // Load previous snapshot (for comparison) on first mount
+  useEffect(() => {
+    const snap = safeReadPrevSnapshot();
+    if (snap) setPrevSnapshot(snap);
+  }, []);
 
   useEffect(() => {
     let didAnon = false;
@@ -393,7 +501,61 @@ export default function AdvicePanel({ results, state }: Props) {
 
 
       const fn = httpsCallable(hubFunctions, "generateAdvice");
-      const res: any = await fn({ appId: APP_ID, payload });
+
+      // Build request payload, optionally including comparison fields
+      let requestPayload: any = { ...payload };
+
+      if (prevSnapshot) {
+        const rateDelta = buildRateDelta(prevSnapshot, results);
+
+        // Only include comparison fields if rateDelta is a real number AND not zero
+        if (typeof rateDelta === "number" && rateDelta !== 0) {
+          requestPayload = {
+            ...payload,
+            previous: prevSnapshot,
+            rateDelta,
+          };
+        }
+      }
+
+      // Safety: never send null/undefined comparison fields
+      if (!requestPayload.previous) delete requestPayload.previous;
+      if (requestPayload.rateDelta == null) delete requestPayload.rateDelta;
+
+      // Build current snapshot
+      const currentSnap: PrevSnapshot = {
+        state,
+        results,
+        savedAtMs: Date.now(),
+      };
+
+      if (prevSnapshot) {
+        const rateDelta = buildRateDelta(prevSnapshot, results);
+
+        const changes = diffState(prevSnapshot.state, state);
+        const changeSummary = buildChangeSummaryLine(changes);
+
+        const hasMeaningfulChange =
+          (typeof rateDelta === "number" && rateDelta !== 0) || !!changeSummary;
+
+        if (hasMeaningfulChange) {
+          requestPayload = {
+            ...payload,
+            previous: prevSnapshot,
+            ...(typeof rateDelta === "number" && rateDelta !== 0 ? { rateDelta } : {}),
+            ...(changeSummary ? { changeSummary } : {}),
+          };
+        }
+      }
+
+      // Safety cleanup
+      if (!requestPayload.previous) delete requestPayload.previous;
+      if (requestPayload.rateDelta == null) delete requestPayload.rateDelta;
+      if (!requestPayload.changeSummary) delete requestPayload.changeSummary;
+
+      const res: any = await fn({ appId: APP_ID, payload: requestPayload });
+
+
       const data: AdviceResponse = res.data ?? {};
 
       setOutJson(JSON.stringify(data, null, 2));
@@ -406,8 +568,15 @@ export default function AdvicePanel({ results, state }: Props) {
         setAdviceMarkdown(data.adviceMarkdown ?? "");
         setIsAdviceCollapsed(false); // auto-show new advice
         setMode("ok");
+
+        // Save snapshot so the next run can compare
+        const snap: PrevSnapshot = { state, results, savedAtMs: Date.now() };
+        setPrevSnapshot(snap);
+        safeWritePrevSnapshot(snap);
+
         return;
       }
+
 
       if (data.status === "upgrade_required") {
         setMode("upgrade_required");
@@ -626,6 +795,10 @@ export default function AdvicePanel({ results, state }: Props) {
     setOutJson("");
     setAdviceMarkdown("");
     setMode("idle");
+    // Clear comparison snapshot for a true reset
+    setPrevSnapshot(null);
+    safeClearPrevSnapshot();
+
 
     try {
       if (hubAuth.currentUser) {
@@ -716,12 +889,6 @@ export default function AdvicePanel({ results, state }: Props) {
         </div>
 
 
-        {/* State B: Signed-in + entitled message (no free-use line) */}
-        {entitled && !isAnonymous && (
-          <p className="ixia-help text-xs ixia-entitled-line">
-            Advice Pack unlocked{paidRemaining > 0 ? ` • Advice remaining: ${paidRemaining}` : ""}.
-          </p>
-        )}
 
         {/* Free-mode counter only */}
         {!entitled && (
