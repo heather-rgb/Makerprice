@@ -11,8 +11,7 @@
     --color-brand-beige-dusty: #CDC4B9;
     --color-brand-earth: #6B645E;
     --color-brand-earth-light: #D6D1CA;
-    --color-brand-forest: #000000;
-
+    --color-brand-forest: #a4a184;
     --font-heading: "Poppins", sans-serif;
     --font-body: "Inter", sans-serif;
 }
@@ -39,6 +38,18 @@ body {
     --ixia-footer-text: color-mix(in oklab, var(--color-brand-earth) 60%, transparent);
 }
 
+/* Remove native number input arrows (Chrome, Safari, Edge) */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Remove native number input arrows (Firefox) */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
 /* Custom Range Input Styling linked to design system */
 input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
@@ -49,7 +60,7 @@ input[type="range"]::-webkit-slider-thumb {
     cursor: pointer;
     border-radius: 50%;
     border: 3px solid var(--color-brand-beige);
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    box-shadow: 0 4px 6px -1px rgba(82, 136, 85, 0.1);
     margin-top: -8px;
 }
 
@@ -92,6 +103,45 @@ input[type="range"]:focus {
     background: var(--color-brand-clay);
     color: var(--color-brand-beige);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+/* =========================================================
+   Ixia Chip — fixed width + stable numbers
+   ========================================================= */
+
+.ixia-chip--fixed-sm {
+    width: 120px;
+}
+
+.ixia-chip--fixed-md {
+    width: 130px;
+}
+
+/* Stable digit width */
+.ixia-tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+}
+
+/* Layout fix */
+.ixia-chip--control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    /* clean spacing between elements */
+}
+
+.ixia-chip__value {
+    min-width: 60px;
+    /* keeps center stable */
+    text-align: center;
+    white-space: nowrap;
+}
+
+.ixia-chip--fixed-lg {
+    width: 140px;
+    /* good for currency values */
 }
 
 /* ===== Ixia UI base (MakerPrice) ===== */
@@ -424,25 +474,109 @@ input[type="range"]:focus {
 }
 
 
-/* Print Overrides */
+/* =========================================================
+   Print layout — Ixia report style (report-only, no blanks)
+   ========================================================= */
+
+.ixia-print-only {
+    display: none;
+}
+
 @media print {
-    body {
-        background-color: white !important;
-    }
 
-    .bg-brand-earth-light {
-        background-color: #f3f4f6 !important;
-    }
-
-    button,
-    select,
-    input[type="range"] {
+    /* Hide the whole app shell (everything UI) */
+    .ixia-app-shell {
         display: none !important;
     }
 
-    .shadow-2xl,
-    .shadow-xl {
-        box-shadow: none !important;
-        border: 1px solid #ddd !important;
+    /* Show the report */
+    .ixia-print-only {
+        display: block !important;
+    }
+
+    /* Page margins */
+    @page {
+        margin: 14mm;
+    }
+
+    /* Basic reset */
+    html,
+    body {
+        background: #fff !important;
+        color: #111 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Prevent browsers appending URLs */
+    a[href]:after {
+        content: "" !important;
+    }
+
+    /* Ensure borders/colors render */
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Print report typography */
+    .ixia-print-report {
+        font-family: inherit;
+    }
+
+    .ixia-print-title {
+        font-size: 18pt;
+        font-weight: 800;
+        margin: 0 0 6mm 0;
+    }
+
+    .ixia-print-subtitle {
+        font-size: 10pt;
+        opacity: 0.75;
+        margin: 0 0 6mm 0;
+    }
+
+    .ixia-print-section {
+        margin: 0 0 6mm 0;
+    }
+
+    .ixia-print-h {
+        font-size: 10pt;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin: 0 0 3mm 0;
+    }
+
+    .ixia-print-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3mm 6mm;
+    }
+
+    .ixia-print-kv {
+        font-size: 10pt;
+        line-height: 1.25;
+    }
+
+    .ixia-print-k {
+        font-size: 8pt;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        opacity: 0.7;
+        margin: 0 0 1mm 0;
+    }
+
+    .ixia-print-v {
+        font-size: 11pt;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    /* Prevent awkward breaks */
+    .ixia-print-keep {
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
 }

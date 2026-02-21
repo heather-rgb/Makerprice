@@ -82,8 +82,9 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
       <div className="p-8 space-y-10">
         <div className="space-y-4 border-l-4 border-brand-clay pl-6 py-2">
           <p className="text-brand-body text-base leading-relaxed font-medium">
-            This guide helps you calculate a fair, sustainable price for your work. Adjust the sliders and watch the totals update.
+            This guide helps you calculate a fair, sustainable price per item. Enter what it costs to make one piece — your time, materials, and a small share of workspace costs — and watch the totals update.
           </p>
+
           <div className="bg-white/70 border border-brand-earth/10 rounded-2xl px-4 py-3">
             <p className="text-xs font-black uppercase tracking-widest text-brand-muted font-heading">
               Pricing a service instead?
@@ -126,19 +127,42 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="grid grid-cols-1 gap-8">
           <div className="space-y-8 ixia-panel p-6 rounded-2xl border">
 
             <h3 className="text-xs font-black uppercase text-brand-heading tracking-widest flex items-center font-heading">
               <i className="fa-solid fa-user-clock mr-2 text-brand-clay/60"></i> Your Time & Effort
             </h3>
+            <p className="text-[12px] text-brand-body/70 font-medium leading-snug">
+              Your time has value. This is what you pay yourself for the work you do.
+            </p>
 
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-bold text-brand-body/70">Hourly Rate</label>
-                <span className="ixia-chip text-sm font-black px-3 py-1 rounded-lg">
-                  {symbol}{state.hourlyRate}/hr
-                </span>
+                <div className="ixia-chip ixia-chip--fixed-md ixia-chip--control text-sm font-black px-3 py-1 rounded-lg">
+                  <button
+                    type="button"
+                    onClick={() => onUpdate('hourlyRate', Math.max(5, state.hourlyRate - 1))}
+                    className="text-brand-body/60 hover:text-brand-clay transition"
+                    aria-label="Decrease hourly rate"
+                  >
+                    <i className="fa-solid fa-minus text-xs"></i>
+                  </button>
+
+                  <span className="ixia-chip__value ixia-tabular-nums">
+                    {symbol}{state.hourlyRate}/hr
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => onUpdate('hourlyRate', Math.min(100, state.hourlyRate + 1))}
+                    className="text-brand-body/60 hover:text-brand-clay transition"
+                    aria-label="Increase hourly rate"
+                  >
+                    <i className="fa-solid fa-plus text-xs"></i>
+                  </button>
+                </div>
               </div>
               <input
                 type="range"
@@ -154,9 +178,42 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-bold text-brand-body/70">Time Taken</label>
-                <span className="ixia-chip text-sm font-black px-3 py-1 rounded-lg">
-                  {formatDuration(state.timeTaken)}
-                </span>
+                <div className="ixia-chip ixia-chip--fixed-md ixia-chip--control text-sm font-black px-3 py-1 rounded-lg">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onUpdate(
+                        'timeTaken',
+                        Math.max(0, parseFloat((state.timeTaken - 0.08333333333333333).toFixed(6)))
+                      )
+                    }
+                    className="text-brand-body/60 hover:text-brand-clay transition"
+                    aria-label="Decrease time taken"
+                  >
+                    <i className="fa-solid fa-minus text-xs"></i>
+                  </button>
+
+                  <span className="ixia-chip__value ixia-tabular-nums">
+                    {formatDuration(state.timeTaken)}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onUpdate(
+                        'timeTaken',
+                        Math.min(
+                          50,
+                          parseFloat((state.timeTaken + 0.08333333333333333).toFixed(6))
+                        )
+                      )
+                    }
+                    className="text-brand-body/60 hover:text-brand-clay transition"
+                    aria-label="Increase time taken"
+                  >
+                    <i className="fa-solid fa-plus text-xs"></i>
+                  </button>
+                </div>
               </div>
               <input
                 type="range"
@@ -174,20 +231,36 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
             <h3 className="text-xs font-black uppercase text-brand-heading tracking-widest flex items-center font-heading">
               <i className="fa-solid fa-box-open mr-2 text-brand-clay/60"></i> Materials & Workspace
             </h3>
+            <p className="text-[12px] text-brand-body/70 font-medium leading-snug">
+              Add what it costs to make this — materials plus your workspace running costs.
+            </p>
+
 
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-bold text-brand-body/70">Materials</label>
-                <div className="ixia-chip flex items-center text-sm font-black px-3 py-1 rounded-lg">
-                  <span className="mr-0.5">{symbol}</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    className="bg-transparent text-brand-beige w-16 focus:outline-none border-none p-0 font-black text-sm [appearance:textfield] text-right"
-                    value={state.materials}
-                    onChange={(e) => onUpdate('materials', Number(e.target.value))}
-                  />
+                <div className="ixia-chip ixia-chip--fixed-md ixia-chip--control text-sm font-black px-3 py-1 rounded-lg">
+                  <button
+                    type="button"
+                    onClick={() => onUpdate('materials', Math.max(0, parseFloat((state.materials - 1).toFixed(2))))}
+                    className="text-brand-body/60 hover:text-brand-clay transition"
+                    aria-label="Decrease materials cost"
+                  >
+                    <i className="fa-solid fa-minus text-xs"></i>
+                  </button>
+
+                  <span className="ixia-chip__value ixia-tabular-nums">
+                    {formatValue(state.materials)}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => onUpdate('materials', parseFloat((state.materials + 1).toFixed(2)))}
+                    className="text-brand-body/60 hover:text-brand-clay transition"
+                    aria-label="Increase materials cost"
+                  >
+                    <i className="fa-solid fa-plus text-xs"></i>
+                  </button>
                 </div>
               </div>
               <input
@@ -204,9 +277,35 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-bold text-brand-body/70">Overheads</label>
-                <span className="ixia-chip text-sm font-black px-3 py-1 rounded-lg">
-                  {formatValue(state.overheads)}
-                </span>
+                <div className="ixia-chip ixia-chip--fixed-md ixia-chip--control text-sm font-black px-3 py-1 rounded-lg">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActivePreset(null);
+                      onUpdate('overheads', Math.max(0, parseFloat((state.overheads - 0.5).toFixed(2))));
+                    }}
+                    className="text-brand-body/60 hover:text-brand-clay transition"
+                    aria-label="Decrease overheads"
+                  >
+                    <i className="fa-solid fa-minus text-xs"></i>
+                  </button>
+
+                  <span className="ixia-chip__value ixia-tabular-nums">
+                    {formatValue(state.overheads)}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActivePreset(null);
+                      onUpdate('overheads', parseFloat((state.overheads + 0.5).toFixed(2)));
+                    }}
+                    className="text-brand-body/60 hover:text-brand-clay transition"
+                    aria-label="Increase overheads"
+                  >
+                    <i className="fa-solid fa-plus text-xs"></i>
+                  </button>
+                </div>
               </div>
               <div className="pb-4">
                 <input
@@ -246,10 +345,34 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
           <div className="ixia-panel p-6 rounded-2xl border">
             <div className="flex justify-between items-center mb-4">
               <label className="text-sm font-bold text-brand-body/70">Extras & Packaging</label>
-              <span className="ixia-chip text-sm font-black px-3 py-1 rounded-lg">
-                {formatValue(state.extras)}
-              </span>
+              <div className="ixia-chip ixia-chip--fixed-md ixia-chip--control text-sm font-black px-3 py-1 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => onUpdate('extras', Math.max(0, state.extras - 1))}
+                  className="text-brand-body/60 hover:text-brand-clay transition"
+                  aria-label="Decrease extras"
+                >
+                  <i className="fa-solid fa-minus text-xs"></i>
+                </button>
+
+                <span className="ixia-chip__value ixia-tabular-nums">
+                  {formatValue(state.extras)}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => onUpdate('extras', state.extras + 1)}
+                  className="text-brand-body/60 hover:text-brand-clay transition"
+                  aria-label="Increase extras"
+                >
+                  <i className="fa-solid fa-plus text-xs"></i>
+                </button>
+              </div>
             </div>
+            <p className="text-[12px] text-brand-body/70 font-medium leading-snug mb-4">
+              Include the little add-ons customers expect — packaging, labels, inserts, and finishing touches.
+            </p>
+
             <input
               type="range"
               min="0"
@@ -263,11 +386,15 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
 
           <div className="ixia-panel--strong p-8 rounded-3xl text-brand-body border">
             <div className="flex justify-between items-center mb-6">
-              <label className="text-sm font-black uppercase tracking-widest text-brand-muted font-heading">Business Growth & Safety</label>
+              <label className="text-sm font-black uppercase tracking-widest text-brand-muted font-heading">Business Buffer</label>
               <span className="text-3xl font-black text-brand-clay">
                 {state.profitMargin}%
               </span>
             </div>
+            <p className="text-[12px] text-brand-body/70 font-medium leading-snug -mt-3 mb-5">
+              This sets aside a buffer in your price for fees, tools, and slower weeks — so you can keep going.
+            </p>
+
             <input
               type="range"
               min="0"
@@ -279,7 +406,7 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
             />
             <div className="flex justify-end items-center mt-4">
               <div className="bg-white px-3 py-1 rounded-full border border-brand-earth/20">
-                <span className="text-[10px] font-black uppercase tracking-wider text-brand-muted mr-2 font-heading">Status:</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-brand-muted mr-2 font-heading">Guide:</span>
                 <span className={`text-[10px] font-black uppercase tracking-wider ${marginStatus.color} font-heading`}>
                   {marginStatus.text}
                 </span>
@@ -293,69 +420,65 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="Tips on Using this Guide"
+
       >
         <div className="space-y-10 font-body">
+
           <div className="border-b border-brand-beige-dusty pb-6">
             <h4 className="text-2xl font-black text-brand-heading leading-tight font-heading">
-              How to Value Your Craft
+              How to Use This Guide
             </h4>
-            <p className="text-sm italic font-semibold text-brand-muted mt-1">
-              Practical advice for creative entrepreneurs
+            <p className="text-sm italic font-medium text-brand-muted mt-1">
+              A simple way to price one handmade item sustainably
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <h4 className="text-brand-heading font-black flex items-center uppercase text-xs tracking-widest font-heading">
               <span className="bg-brand-clay text-brand-beige w-6 h-6 rounded-full flex items-center justify-center text-[10px] mr-2">1</span>
-              Your Labor is a Real Cost
+              Think Per Item
             </h4>
-            <p className="pl-8 text-sm italic font-medium leading-relaxed text-brand-body/70">
-              Your "Hourly Rate" is your salary for making the item. It is not your profit. If you don't pay yourself for your time, your business isn't sustainable.
+            <p className="text-sm font-medium leading-relaxed text-brand-body/70">
+              Enter what it costs to make one piece — not your full monthly bills. If you pay rent or electricity, include only a small share that belongs to this item.
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <h4 className="text-brand-heading font-black flex items-center uppercase text-xs tracking-widest font-heading">
               <span className="bg-brand-clay text-brand-beige w-6 h-6 rounded-full flex items-center justify-center text-[10px] mr-2">2</span>
-              Hidden Overhead Costs
+              Your Time Is A Real Cost
             </h4>
-            <p className="pl-8 text-sm italic font-medium leading-relaxed text-brand-body/70">
-              Workspace costs like electricity, heating, and internet are often forgotten. Use the presets to quickly estimate how much of your bills should be covered by each product.
+            <p className="text-sm font-medium leading-relaxed text-brand-body/70">
+              Your hourly rate is your wage for making the product. It is separate from business profit. If you don’t pay yourself, the business won’t feel sustainable.
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <h4 className="text-brand-heading font-black flex items-center uppercase text-xs tracking-widest font-heading">
               <span className="bg-brand-clay text-brand-beige w-6 h-6 rounded-full flex items-center justify-center text-[10px] mr-2">3</span>
-              The Power of Profit Margin
+              What the Business Buffer Does
             </h4>
-            <p className="pl-8 text-sm italic font-medium leading-relaxed text-brand-body/70">
-              "Profit" is what the business keeps after everyone (including you) is paid. This money goes toward new tools, website hosting, marketing, and a safety net for slow months.
+            <p className="text-sm font-medium leading-relaxed text-brand-body/70">
+              The Business Buffer builds protection into your price. It covers things like payment fees, website costs, new tools, and slower sales periods. It stays in the business so you can keep going.
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <h4 className="text-brand-heading font-black flex items-center uppercase text-xs tracking-widest font-heading">
               <span className="bg-brand-clay text-brand-beige w-6 h-6 rounded-full flex items-center justify-center text-[10px] mr-2">4</span>
-              Rounding for Retail
+              The Suggested Retail Price
             </h4>
-            <p className="pl-8 text-sm italic font-medium leading-relaxed text-brand-body/70">
-              The "Suggested Retail Price" automatically rounds down to the nearest .50 or .00 to give you a "friendly" price point that looks natural to customers.
+            <p className="text-sm font-medium leading-relaxed text-brand-body/70">
+              The The suggested price is the figure this guide calculates based on your inputs. It covers your materials, pays you for your time, and sets aside a buffer for the business. It’s rounded to a clean retail number so it feels natural to your customers.
             </p>
           </div>
 
-          <div className="ixia-panel--strong p-6 border rounded-2xl mt-4">
-            <p className="text-xs font-black uppercase text-brand-heading mb-2 font-heading">A message from Heather:</p>
-            <p className="text-xs italic font-medium text-brand-body/80 leading-relaxed">
-              "Don't be afraid to charge what you are worth. Your unique skill and time have immense value. Use this tool as your confidence booster when talking to customers!"
-            </p>
-          </div>
           <div className="ixia-panel--soft p-5 rounded-2xl border">
             <p className="text-xs font-black uppercase text-brand-heading mb-2 font-heading">
-              Not sure this is the right tool?
+              Still unsure?
             </p>
-            <p className="text-xs italic font-medium text-brand-body/70 leading-relaxed">
-              If you’re pricing services (sessions, appointments, packages), the Service Pricing Guide is a better fit.
+            <p className="text-xs font-medium text-brand-body/70 leading-relaxed">
+              If you're pricing sessions, appointments, or packages instead of physical products, the Service Pricing Guide will be a better fit.
             </p>
 
             <a
@@ -367,6 +490,7 @@ export const InputCard: React.FC<InputCardProps> = ({ state, onUpdate, currency 
           </div>
 
         </div>
+
       </Modal>
     </div>
   );

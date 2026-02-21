@@ -24,10 +24,7 @@ type AdviceSection = {
   blocks: AdviceBlock[];
 };
 
-
-
-
-function parseAdviceToSections(input: string): AdviceSection[] {
+export function parseAdviceToSections(input: string): AdviceSection[] {
   const text = String(input || "").replace(/\r\n/g, "\n").trim();
   if (!text) return [];
 
@@ -37,7 +34,6 @@ function parseAdviceToSections(input: string): AdviceSection[] {
   let current: AdviceSection = { title: "Advice", blocks: [] };
 
   const flush = () => {
-    // remove empty paragraphs/lists
     current.blocks = current.blocks.filter((b) => {
       if (b.kind === "p") return b.text.trim().length > 0;
       if (b.kind === "ul") return b.items.length > 0;
@@ -48,10 +44,8 @@ function parseAdviceToSections(input: string): AdviceSection[] {
     if (current.blocks.length > 0 || current.title !== "Advice") sections.push(current);
   };
 
-
   let ul: string[] = [];
   let ol: string[] = [];
-
 
   const flushLists = () => {
     if (ul.length) {
@@ -67,8 +61,6 @@ function parseAdviceToSections(input: string): AdviceSection[] {
   for (const rawLine of lines) {
     const line = rawLine.trimEnd();
 
-
-    // Headings like: ## Summary (legacy support)
     const headingMatch = line.trim().match(/^#{1,6}\s+(.*)$/);
     if (headingMatch) {
       flushLists();
@@ -77,7 +69,6 @@ function parseAdviceToSections(input: string): AdviceSection[] {
       continue;
     }
 
-    // Plain headings like: Summary / What Looks Good / One Next Step (no markdown)
     const trimmedForHeading = line.trim();
 
     const plainHeadingMatch = trimmedForHeading.match(
@@ -91,34 +82,27 @@ function parseAdviceToSections(input: string): AdviceSection[] {
       continue;
     }
 
-
     const trimmed = line.trim();
 
-    // Blank line = end any running list
     if (!trimmed) {
       flushLists();
       continue;
     }
 
-    // Unordered list like: - item
     const ulMatch = trimmed.match(/^[-*]\s+(.*)$/);
     if (ulMatch) {
-      // if we were building an ordered list, close it
       if (ol.length) flushLists();
       ul.push(ulMatch[1].trim());
       continue;
     }
 
-    // Ordered list like: 1. item
     const olMatch = trimmed.match(/^\d+\.\s+(.*)$/);
     if (olMatch) {
-      // if we were building an unordered list, close it
       if (ul.length) flushLists();
       ol.push(olMatch[1].trim());
       continue;
     }
 
-    // Normal paragraph line
     flushLists();
     current.blocks.push({ kind: "p", text: trimmed });
   }
@@ -129,11 +113,13 @@ function parseAdviceToSections(input: string): AdviceSection[] {
   return sections.length ? sections : [{ title: "Advice", blocks: [{ kind: "p", text }] }];
 }
 
-
 type Props = {
   results: any;
   state: any;
   currencySymbol: string;
+
+  // NEW: let App capture advice for printing
+  onAdviceChange?: (text: string) => void;
 };
 
 type AdviceResponse =
@@ -157,9 +143,7 @@ const APP_ID = "makerprice";
 const UPGRADE_URL = "https://ixiacreativestudio.com/checkout/?add-to-cart=1779";
 const LS_EMAIL_KEY = "ixia_emailForSignIn";
 const SS_OOB_KEY_PREFIX = "ixia_emailOob_used_";
-// Comparison snapshot storage (MakerPrice)
 const LS_PREV_SNAPSHOT_KEY = "ixia_makerprice_prev_snapshot_v1";
-
 
 function getOobCodeFromUrl(href: string): string | null {
   try {
@@ -169,10 +153,7 @@ function getOobCodeFromUrl(href: string): string | null {
     return null;
   }
 }
-// ---------------- COMPARISON HELPERS ----------------
 
-// IMPORTANT: Do not guess fields. We'll store the full state/results,
-// and compute rateDelta from the one confirmed results field.
 type PrevSnapshot = {
   state: any;
   results: any;
@@ -205,10 +186,6 @@ function safeClearPrevSnapshot() {
   }
 }
 
-/**
- * Replace "effectiveHourlyRate" below ONLY if your MakerPrice results uses a different key.
- * Do not guess—confirm via your types/results calculation.
- */
 function getEffectiveHourlyRate(results: any): number | null {
   const n = Number(results?.effectiveHourlyRate);
   return Number.isFinite(n) ? n : null;
@@ -219,9 +196,9 @@ function buildRateDelta(previous: PrevSnapshot, currentResults: any): number | n
   const curRate = getEffectiveHourlyRate(currentResults);
   if (prevRate == null || curRate == null) return null;
   const d = curRate - prevRate;
-  // ignore microscopic float noise
   return Math.abs(d) >= 0.01 ? d : 0;
 }
+
 function diffState(prev: any, cur: any) {
   const changes: Array<{ key: string; from: any; to: any }> = [];
 
@@ -234,11 +211,9 @@ function diffState(prev: any, cur: any) {
     const a = (prevObj as any)[key];
     const b = (curObj as any)[key];
 
-    // Skip functions/undefined
     if (typeof a === "function" || typeof b === "function") continue;
     if (typeof a === "undefined" && typeof b === "undefined") continue;
 
-    // Simple compare (works well for numbers/strings/booleans)
     const same =
       (Number.isFinite(a) && Number.isFinite(b) && Number(a) === Number(b)) ||
       a === b;
@@ -251,16 +226,11 @@ function diffState(prev: any, cur: any) {
 
 function buildChangeSummaryLine(changes: Array<{ key: string; from: any; to: any }>) {
   if (!changes.length) return null;
-
-  // Keep it short: show up to 3 changes
   const top = changes.slice(0, 3).map((c) => `${c.key}: ${c.from} → ${c.to}`);
   return `Changes since last run: ${top.join(", ")}.`;
 }
 
-
-
-export default function AdvicePanel({ results, state, currencySymbol }: Props) {
-
+export default function AdvicePanel({ results, state, currencySymbol, onAdviceChange }: Props) {
   const [loading, setLoading] = useState(false);
 
   const [mode, setMode] = useState<
@@ -276,7 +246,6 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [infoMsg, setInfoMsg] = useState<string>("");
 
-  // Email-link notice shown UNDER the “Email me a sign-in link” button
   const [emailLinkNotice, setEmailLinkNotice] = useState<string>("");
 
   const [emailForLink, setEmailForLink] = useState<string>("");
@@ -294,15 +263,9 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
   const autoClaimAttemptedForUid = useRef<string | null>(null);
   const [isAdviceCollapsed, setIsAdviceCollapsed] = useState(false);
 
-  // Clean gate: sign-in options hidden until user opens them
   const [showSignInPanel, setShowSignInPanel] = useState(false);
-
-  // Upgrade modal (shown when free uses are exhausted and user is not entitled)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  // Comparison snapshot (previous run)
   const [prevSnapshot, setPrevSnapshot] = useState<PrevSnapshot | null>(null);
-
-
 
   const isEmailCapable = !!user?.email;
   const isAnonymous = !!user?.isAnonymous;
@@ -318,8 +281,6 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
     [results, state, currencySymbol]
   );
 
-
-  // Load previous snapshot (for comparison) on first mount
   useEffect(() => {
     const snap = safeReadPrevSnapshot();
     if (snap) setPrevSnapshot(snap);
@@ -332,22 +293,17 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
     const unsub = onAuthStateChanged(hubAuth, async (u) => {
       setUser(u);
 
-      // After we have ANY user, pull counters immediately so UI doesn't show 0/3.
-      // (this must be your existing non-consuming status refresh)
       if (u) {
-        refreshUsage(); // <- your existing function that does NOT consume a use
+        refreshUsage();
         return;
       }
 
-      // If null on first event, wait briefly before creating anon.
-      // This prevents overriding a restored Google session.
       if (firstAuthEvent && !didAnon) {
         firstAuthEvent = false;
         setTimeout(async () => {
           if (!hubAuth.currentUser && !didAnon) {
             didAnon = true;
             await signInAnonymously(hubAuth);
-            // refresh after anon exists
             refreshUsage();
           }
         }, 400);
@@ -360,8 +316,6 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
     return () => unsub();
   }, []);
 
-
-  // Email link sign-in handler (guard against double consumption)
   useEffect(() => {
     (async () => {
       try {
@@ -483,9 +437,8 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
     setEmailLinkNotice("");
     setOutJson("");
     setAdviceMarkdown("");
+    onAdviceChange?.(""); // NEW: clear in App too
 
-    // If user has no free uses left and is not entitled,
-    // do NOT call OpenAI — show upgrade modal instead
     if (!entitled && freeUsed >= 3) {
       setMode("upgrade_required");
       setShowUpgradeModal(true);
@@ -493,22 +446,18 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
       return;
     }
 
-
     try {
       if (!hubAuth.currentUser) {
         await signInAnonymously(hubAuth);
       }
 
-
       const fn = httpsCallable(hubFunctions, "generateAdvice");
 
-      // Build request payload, optionally including comparison fields
       let requestPayload: any = { ...payload };
 
       if (prevSnapshot) {
         const rateDelta = buildRateDelta(prevSnapshot, results);
 
-        // Only include comparison fields if rateDelta is a real number AND not zero
         if (typeof rateDelta === "number" && rateDelta !== 0) {
           requestPayload = {
             ...payload,
@@ -518,16 +467,8 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
         }
       }
 
-      // Safety: never send null/undefined comparison fields
       if (!requestPayload.previous) delete requestPayload.previous;
       if (requestPayload.rateDelta == null) delete requestPayload.rateDelta;
-
-      // Build current snapshot
-      const currentSnap: PrevSnapshot = {
-        state,
-        results,
-        savedAtMs: Date.now(),
-      };
 
       if (prevSnapshot) {
         const rateDelta = buildRateDelta(prevSnapshot, results);
@@ -548,13 +489,11 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
         }
       }
 
-      // Safety cleanup
       if (!requestPayload.previous) delete requestPayload.previous;
       if (requestPayload.rateDelta == null) delete requestPayload.rateDelta;
       if (!requestPayload.changeSummary) delete requestPayload.changeSummary;
 
       const res: any = await fn({ appId: APP_ID, payload: requestPayload });
-
 
       const data: AdviceResponse = res.data ?? {};
 
@@ -565,11 +504,12 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
       if (typeof data.paidRemaining === "number") setPaidRemaining(data.paidRemaining);
 
       if (data.status === "ok") {
-        setAdviceMarkdown(data.adviceMarkdown ?? "");
-        setIsAdviceCollapsed(false); // auto-show new advice
+        const adviceText = data.adviceMarkdown ?? "";
+        setAdviceMarkdown(adviceText);
+        onAdviceChange?.(adviceText); // NEW: push to App for print
+        setIsAdviceCollapsed(false);
         setMode("ok");
 
-        // Save snapshot so the next run can compare
         const snap: PrevSnapshot = { state, results, savedAtMs: Date.now() };
         setPrevSnapshot(snap);
         safeWritePrevSnapshot(snap);
@@ -577,14 +517,12 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
         return;
       }
 
-
       if (data.status === "upgrade_required") {
         setMode("upgrade_required");
         setShowUpgradeModal(true);
         setLoading(false);
         return;
       }
-
 
       setMode("error");
       setErrorMsg("Unexpected response from generateAdvice.");
@@ -611,14 +549,12 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
       if (typeof data.freeUsed === "number") setFreeUsed(data.freeUsed);
       if (typeof data.paidRemaining === "number") setPaidRemaining(data.paidRemaining);
 
-      // Optional: keep mode consistent with counters without triggering advice
       if (data.status === "upgrade_required") setMode("upgrade_required");
       if (data.status === "ok") setMode("idle");
     } catch {
-      // silent by design
+      // silent
     }
   }
-
 
   function openUpgrade() {
     window.open(UPGRADE_URL, "_blank", "noopener,noreferrer");
@@ -633,9 +569,6 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
     try {
       const provider = new GoogleAuthProvider();
 
-      // ✅ Fix double popup:
-      // If linking fails because the credential is already used (existing Firebase user),
-      // use the credential returned by the error to sign in directly (no second popup).
       if (hubAuth.currentUser?.isAnonymous) {
         try {
           await linkWithPopup(hubAuth.currentUser, provider);
@@ -648,7 +581,6 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
             if (cred) {
               await signInWithCredential(hubAuth, cred);
             } else {
-              // fallback only if we truly have no credential (rare)
               await signInWithPopup(hubAuth, provider);
             }
           } else {
@@ -769,7 +701,6 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
     }
   }
 
-  // Auto-claim after email-capable sign-in — but do NOT auto-run advice.
   useEffect(() => {
     (async () => {
       try {
@@ -794,11 +725,11 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
     setEmailLinkNotice("");
     setOutJson("");
     setAdviceMarkdown("");
+    onAdviceChange?.(""); // NEW: clear in App too
     setMode("idle");
-    // Clear comparison snapshot for a true reset
+
     setPrevSnapshot(null);
     safeClearPrevSnapshot();
-
 
     try {
       if (hubAuth.currentUser) {
@@ -826,8 +757,6 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
     return `Signed in • ${user.email ?? "email unavailable"}`;
   }, [user, isAnonymous]);
 
-  // ✅ Fix duplicate “Advice Pack unlocked”:
-  // Only show the “free uses” line in free mode. Once entitled, the info message is enough.
   const entitlementLine = useMemo(() => {
     if (entitled) return "";
     return `Free uses in this tool: ${freeUsed} / 3`;
@@ -835,43 +764,12 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
 
   const showUpgradeGate = mode === "upgrade_required" && !entitled;
 
-  function renderAdviceBlocks(text: string) {
-    const blocks = text
-      .split(/\n\s*\n/g)            // split on blank lines
-      .map((b) => b.trim())
-      .filter(Boolean);
-
-    return blocks.map((block, i) => {
-      // detect a simple numbered list block: "1. ..." lines
-      const lines = block.split("\n").map((l) => l.trim()).filter(Boolean);
-      const isNumberedList = lines.length > 1 && lines.every((l) => /^\d+\.\s+/.test(l));
-
-      if (isNumberedList) {
-        return (
-          <ol key={i} className="ixia-advice-list list-decimal">
-            {lines.map((l, idx) => (
-              <li key={idx} className="ixia-advice-li">
-                {l.replace(/^\d+\.\s+/, "")}
-              </li>
-            ))}
-          </ol>
-        );
-      }
-
-      return (
-        <p key={i} className="ixia-advice-p">
-          {block}
-        </p>
-      );
-    });
-  }
-
-
   return (
     <section className="ixia-card ixia-card--padded space-y-3">
-
       <div className="space-y-1">
-        <h3 className="ixia-card-title">Like some advice on based on your input? You have access to 3 free clicks of our adviser.</h3>
+        <h3 className="ixia-card-title">
+          Like some advice on based on your input? You have access to 3 free clicks of our adviser.
+        </h3>
 
         <p className="ixia-help text-xs">
           Click <strong>Get Advice</strong> for analysis of what looks good and what you could tweak to improve your profit for your product
@@ -880,7 +778,6 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
         <div className="ixia-advice-helper">
           <p className="text-xs">{authLine}</p>
 
-          {/* State B: Signed-in + entitled message (no free-use line) */}
           {entitled && !isAnonymous && (
             <p className="text-xs ixia-entitled-line">
               Advice Pack unlocked{paidRemaining > 0 ? ` • Advice remaining: ${paidRemaining}` : ""}.
@@ -888,9 +785,6 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
           )}
         </div>
 
-
-
-        {/* Free-mode counter only */}
         {!entitled && (
           <>
             {!!entitlementLine && <p className="ixia-help text-xs">{entitlementLine}</p>}
@@ -915,8 +809,6 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
         </div>
       )}
 
-
-
       {!!errorMsg && (
         <div className="ixia-card">
           <p className="ixia-help ixia-error">{errorMsg}</p>
@@ -931,6 +823,7 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
       >
         {loading ? "Generating…" : "Get advice"}
       </button>
+
       {hubAuth.currentUser?.isAnonymous && showSignInPanel && !showUpgradeGate && (
         <div className="ixia-card space-y-2">
           <p className="ixia-help ixia-gate-sub">
@@ -975,7 +868,6 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
           </p>
         </div>
       )}
-
 
       {showUpgradeGate && (
         <div className="ixia-modal" role="dialog" aria-modal="true">
@@ -1023,7 +915,6 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
         </div>
       )}
 
-
       {mode === "email_link_needs_email" && (
         <div className="ixia-card space-y-2">
           <p className="ixia-help">
@@ -1050,7 +941,7 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
       {!!adviceMarkdown && (
         <div className="ixia-card ixia-advice space-y-3">
           <h4 className="ixia-card-title">Advice</h4>
-          {/* Desktop-only: collapse advice text, keep CTA visible */}
+
           <button
             type="button"
             className="ixia-link text-sm hidden lg:inline-flex"
@@ -1096,7 +987,6 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
                       );
                     }
 
-                    // ordered list
                     return (
                       <ol key={i} className="ixia-advice__list ixia-advice__list--numbers">
                         {b.items.map((it, j) => (
@@ -1113,7 +1003,6 @@ export default function AdvicePanel({ results, state, currencySymbol }: Props) {
           )}
         </div>
       )}
-
 
       {!!outJson && (
         <details className="ixia-card">
